@@ -544,7 +544,6 @@ function ListenLiveWidget({ settings }) {
             {loadingAudio ? <Loader2 size={16} className="animate-spin" /> : playing ? <Pause size={16} /> : <Play size={16} />}
             {playing ? 'Pause' : 'Listen Live'}
           </button>
-          <p className="text-xs text-blue-300 mt-2 text-center">Demo stream — add your FM stream URL in Admin → Settings</p>
         </div>
       )}
       <button onClick={() => setOpen(o => !o)} className="h-14 pl-4 pr-5 rounded-full bg-blue-950 text-white shadow-xl flex items-center gap-2 hover:bg-blue-900">
@@ -781,7 +780,7 @@ function ResearchPage({ links }) {
     <div className="max-w-3xl mx-auto px-4 md:px-6 py-8">
       <Eyebrow>Resources</Eyebrow>
       <h1 className="text-3xl font-bold text-blue-950 mt-2 mb-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Research</h1>
-      <p className="text-slate-500 mb-6">Handy external links curated by our newsroom for fact-checking and further reading.</p>
+      <p className="text-slate-500 mb-6">Take part in our surveys and questionnaires — tap any link below to get started.</p>
       {links.length === 0 ? <EmptyState icon={Link2} title="No links yet" /> : (
         <div className="grid gap-3">
           {links.map(l => (
