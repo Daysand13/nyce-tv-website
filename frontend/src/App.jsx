@@ -644,7 +644,7 @@ function ArticleCard({ article, category, onOpen, index = 0, layout = 'grid' }) 
   if (layout === 'hero') {
     return (
       <button onClick={() => onOpen(article)} className="text-left w-full group">
-        <div className="relative rounded-2xl overflow-hidden h-64 md:h-96">
+        <div className="relative rounded-2xl overflow-hidden h-64 md:h-auto md:aspect-video">
           <CardThumb imageUrl={article.imageUrl} gradientIndex={index} className="w-full h-full" />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(23,37,84,0.92) 0%, rgba(23,37,84,0.25) 55%, transparent 100%)' }} />
           <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
