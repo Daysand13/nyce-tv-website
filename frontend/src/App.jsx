@@ -51,16 +51,17 @@ function timeAgo(iso) {
 }
 function extractYouTubeId(url) {
   if (!url) return null;
-  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
   return m ? m[1] : null;
 }
 function mediaThumbUrl(mediaType, mediaUrl) {
   if (mediaType === 'image') return mediaUrl || '';
-  if (mediaType === 'youtube') {
-    const id = extractYouTubeId(mediaUrl);
-    return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
-  }
-  return ''; // video-file/link posts have no easy auto-thumbnail — falls back to the icon placeholder
+  // Try a YouTube thumbnail regardless of the declared type — if a YouTube link ended up
+  // saved as "Video file / link" instead of "YouTube link", this still finds the right
+  // thumbnail instead of silently falling back to the generic placeholder icon.
+  const id = extractYouTubeId(mediaUrl);
+  if (id) return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+  return '';
 }
 function stripHtml(text = '') { return text.replace(/\s+/g, ' ').trim(); }
 
@@ -100,26 +101,38 @@ function CategoryTag({ name, isLive }) {
     </span>
   );
 }
-function AdSlot({ label = 'Advertisement', variant = 'banner', ads = [] }) {
-  const sizeClass = variant === 'banner' ? 'h-24 md:h-28' : 'h-40';
-  const active = ads.filter((a) => a.active && a.imageUrl);
-  // Picks one ad per slot render — simple rotation across however many are active, rather
-  // than needing separate "which slot" targeting for a site this size.
-  const ad = useMemo(() => (active.length ? active[Math.floor(Math.random() * active.length)] : null), [active.length]);
+function AdSlot({ label = 'Advertisement', ads = [] }) {
+  const active = useMemo(() => ads.filter((a) => a.active && a.imageUrl), [ads]);
+  // Random starting point so multiple ad slots on the same page don't all show the same
+  // ad in lockstep; each slot then cycles through every active ad in turn every 10s.
+  const [index, setIndex] = useState(() => Math.floor(Math.random() * Math.max(active.length, 1)));
+
+  useEffect(() => {
+    if (active.length < 2) return;
+    const timer = setInterval(() => setIndex((i) => (i + 1) % active.length), 10000);
+    return () => clearInterval(timer);
+  }, [active.length]);
+
+  const ad = active.length ? active[index % active.length] : null;
 
   if (ad) {
     return (
-      <a href={ad.linkUrl || '#'} target="_blank" rel="noopener noreferrer sponsored" className={`w-full ${sizeClass} rounded-xl overflow-hidden block relative group`}>
-        <img src={ad.imageUrl} alt={ad.advertiser} className="w-full h-full object-cover" />
-        <span className="absolute top-1.5 left-1.5 bg-blue-950 text-white text-xs font-semibold px-1.5 py-0.5 rounded opacity-80">Ad</span>
-      </a>
+      <div className="flex justify-center">
+        <a href={ad.linkUrl || '#'} target="_blank" rel="noopener noreferrer sponsored"
+          className="w-full max-w-xs aspect-square rounded-xl overflow-hidden block relative bg-slate-50 border border-slate-100">
+          <img src={ad.imageUrl} alt={ad.advertiser} className="w-full h-full object-contain" />
+          <span className="absolute top-1.5 left-1.5 bg-blue-950 text-white text-xs font-semibold px-1.5 py-0.5 rounded opacity-80">Ad</span>
+        </a>
+      </div>
     );
   }
   return (
-    <div className={`w-full ${sizeClass} rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center text-slate-400 gap-1`}>
-      <Megaphone size={20} />
-      <span className="text-xs font-semibold tracking-widest uppercase">{label}</span>
-      <span className="text-xs text-slate-300">Add sponsors from Admin → Ads</span>
+    <div className="flex justify-center">
+      <div className="w-full max-w-xs aspect-square rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center text-slate-400 gap-1 px-4 text-center">
+        <Megaphone size={20} />
+        <span className="text-xs font-semibold tracking-widest uppercase">{label}</span>
+        <span className="text-xs text-slate-300">Add sponsors from Admin → Ads</span>
+      </div>
     </div>
   );
 }
