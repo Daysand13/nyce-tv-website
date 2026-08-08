@@ -16,6 +16,7 @@ import donateRoutes from './src/routes/donate.js';
 import settingsRoutes from './src/routes/settings.js';
 import commentsRoutes from './src/routes/comments.js';
 import uploadsRoutes from './src/routes/uploads.js';
+import adsRoutes from './src/routes/ads.js';
 import { notFoundHandler, errorHandler } from './src/middleware/errorHandler.js';
 
 if (!process.env.JWT_SECRET) {
@@ -50,10 +51,11 @@ app.use('/api/donate', donateRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/comments', commentsRoutes);
 app.use('/api/upload', uploadsRoutes);
+app.use('/api/ads', adsRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`NYCE TV API listening on port ${PORT}`);
+  console.log(`NYCE 90.7 FM API listening on port ${PORT}`);
 });

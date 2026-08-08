@@ -1,4 +1,4 @@
--- NYCE TV — initial schema
+-- NYCE 90.7 FM — initial schema
 
 CREATE TABLE IF NOT EXISTS admins (
   id SERIAL PRIMARY KEY,
@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS donate_methods (
 
 CREATE TABLE IF NOT EXISTS site_settings (
   id INTEGER PRIMARY KEY DEFAULT 1,
-  station_name TEXT NOT NULL DEFAULT 'NYCE TV',
+  station_name TEXT NOT NULL DEFAULT 'NYCE 90.7 FM',
   tagline TEXT NOT NULL DEFAULT '',
   live_stream_url TEXT NOT NULL DEFAULT '',
   CONSTRAINT settings_singleton CHECK (id = 1)

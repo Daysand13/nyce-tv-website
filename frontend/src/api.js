@@ -1,4 +1,4 @@
-// Talks to the NYCE TV backend (see /backend in this project). Set VITE_API_URL in .env
+// Talks to the NYCE 90.7 FM backend (see /backend in this project). Set VITE_API_URL in .env
 // to point at your deployed API; defaults to a local dev server on :4000.
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
@@ -63,6 +63,7 @@ export const api = {
   live: crud('/live'),
   team: crud('/team'),
   research: crud('/research'),
+  ads: crud('/ads'),
   contact: {
     get: () => request('/contact'),
     update: (data) => request('/contact', { method: 'PUT', body: JSON.stringify(data) }),

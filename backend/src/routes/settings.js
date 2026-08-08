@@ -18,7 +18,7 @@ const settingsSchema = z.object({
 
 router.get('/', asyncRoute(async (req, res) => {
   const { rows } = await query('SELECT * FROM site_settings WHERE id = 1');
-  res.json(rows[0] ? toApi(rows[0]) : { stationName: 'NYCE TV', tagline: '', liveStreamUrl: '' });
+  res.json(rows[0] ? toApi(rows[0]) : { stationName: 'NYCE 90.7 FM', tagline: '', liveStreamUrl: '' });
 }));
 
 router.put('/', requireAdmin, asyncRoute(async (req, res) => {

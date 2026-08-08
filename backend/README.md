@@ -1,6 +1,6 @@
-# NYCE TV — Backend API
+# NYCE 90.7 FM — Backend API
 
-A Node.js/Express + PostgreSQL API for the NYCE TV news site: categories, articles, live posts,
+A Node.js/Express + PostgreSQL API for the NYCE 90.7 FM news site: categories, articles, live posts,
 team, research links, contact/socials, donate info, site settings, and threaded text/voice
 comments with server-side profanity filtering. Real JWT auth, not a demo password.
 
@@ -30,7 +30,8 @@ npm start                   # runs on http://localhost:4000
 | `ADMIN_PASSWORD` | Only for seeding | Required the first time you run `npm run seed` — this becomes the real login. |
 | `PORT` | No | Defaults to `4000`. |
 | `FRONTEND_ORIGIN` | Recommended | Comma-separated list of allowed origins for CORS. Use `*` only while testing. |
-| `UPLOAD_DIR` | No | Where uploaded files land locally. See the storage note below. |
+| `UPLOAD_DIR` | No | Local-disk fallback path, only used when R2 (below) isn't configured. |
+| `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL` | Recommended | All five together activate Cloudflare R2 for uploads. See the storage note in §4. |
 
 `npm run seed` is safe to re-run — it only creates things that don't already exist, so it won't duplicate content or reset an admin that's already there.
 
@@ -54,6 +55,8 @@ All responses are JSON. Protected routes need `Authorization: Bearer <token>` fr
 | POST/PUT/DELETE | `/api/team[/:id]` | admin | `{name, role, photoUrl, bio}` |
 | GET | `/api/research` | — | List |
 | POST/PUT/DELETE | `/api/research[/:id]` | admin | `{label, url, description}` |
+| GET | `/api/ads` | — | List (includes inactive — the frontend filters to `active` before displaying) |
+| POST/PUT/DELETE | `/api/ads[/:id]` | admin | `{advertiser, imageUrl, linkUrl, active}` |
 | GET/PUT | `/api/contact` | PUT: admin | `{address, phone, email, socials:{facebook,twitter,instagram,youtube,tiktok,whatsapp}}` |
 | GET | `/api/donate` | — | `{intro, methods:[...]}` |
 | PUT | `/api/donate/intro` | admin | `{intro}` |
@@ -89,10 +92,23 @@ Whichever you pick, after deploying:
 This backend is solid and tested, but a few things are intentionally left as configuration
 rather than being decided for you:
 
-- **File storage**: uploads currently save to local disk (`/uploads`). That's fine for a single
-  always-on server, but most modern hosts rebuild containers on deploy and wipe local files.
-  Before launch, swap the upload route to write to an S3-compatible bucket (AWS S3, Cloudflare R2,
-  Backblaze B2, DigitalOcean Spaces all work well and are inexpensive) instead of disk.
+- **File storage — set this up before real launch.** Uploads use Cloudflare R2 automatically
+  once configured; without it, they fall back to local disk, which most hosts wipe on every
+  redeploy (this is why photos can vanish "after a while" on a host like Render). To turn on R2:
+  1. In the Cloudflare dashboard, go to **R2 Object Storage** → you'll be asked to enable R2
+     (requires a payment method on file, but normal image traffic for a site like this stays
+     inside the free 10GB/month tier — R2's whole pitch is zero egress fees).
+  2. **Create bucket** → give it a name (e.g. `nyce-uploads`).
+  3. Open the bucket → **Settings** → **Public Access** → allow access via the `r2.dev`
+     subdomain. Copy that public URL — it's your `R2_PUBLIC_URL`. (A custom domain like
+     `media.yourdomain.com` works too and is nicer for production, but `r2.dev` is fine to start.)
+  4. Back in the R2 Overview page, copy your **Account ID** — that's `R2_ACCOUNT_ID`.
+  5. **Manage API Tokens** → **Create API Token** → give it Object Read & Write permission,
+     scoped to your bucket → copy the **Access Key ID** and **Secret Access Key**.
+  6. Set all five as environment variables on your backend host: `R2_ACCOUNT_ID`,
+     `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL`.
+  Once all five are set, the server switches to R2 automatically on next deploy — nothing
+  else to change. Leave them unset for local development; local disk is fine there.
 - **Profanity filter**: the word list in `src/utils/profanity.js` is intentionally small and
   illustrative. Swap in a maintained package (e.g. `bad-words`, `leo-profanity`) or a cloud
   moderation API for real coverage.

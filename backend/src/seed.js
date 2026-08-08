@@ -43,7 +43,7 @@ async function seedContent() {
   const { rows: articleCount } = await query('SELECT COUNT(*)::int AS n FROM articles');
   if (articleCount[0].n === 0) {
     const samples = [
-      ['News', 'Welcome to the New NYCE TV Newsroom', 'NYCE Newsroom', true],
+      ['News', 'Welcome to the New NYCE 90.7 FM Newsroom', 'NYCE Newsroom', true],
       ['Politics', 'Sample Story: Parliament Session Highlights', 'Staff Reporter', false],
       ['Business', 'Sample Story: Markets Close Steady', 'Business Desk', false],
       ['Sports', 'Sample Story: Local Derby Recap', 'Sports Desk', false],
@@ -113,7 +113,7 @@ async function seedContent() {
   await query(
     `INSERT INTO site_settings (id, station_name, tagline, live_stream_url) VALUES (1, $1, $2, $3)
      ON CONFLICT (id) DO NOTHING`,
-    ['NYCE TV', 'Your Pulse. Your News.', '']
+    ['NYCE 90.7 FM', 'Your Pulse. Your News.', '']
   );
 
   console.log('Content seed complete.');

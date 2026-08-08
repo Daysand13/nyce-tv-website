@@ -3,12 +3,11 @@ import {
   Menu, X, Volume2, Play, Pause, Mic, Square, Trash2, Pencil, Plus,
   ChevronRight, ExternalLink, Heart, Radio, Users, Link2, Lock, LogOut, Settings,
   LayoutGrid, Megaphone, MessageSquare, Reply, Send, Loader2, Check, AlertTriangle,
-  ArrowLeft, Upload, Clock, User, Eye, EyeOff, Globe,
+  ArrowLeft, Upload, Clock, User, Eye, EyeOff, MessageCircle, Music2, Globe,
   Newspaper, Rss, Video, Mail, Phone, MapPin,
 } from 'lucide-react';
 import { api, setToken, getToken } from './api.js';
 import logoUrl from './assets/logo.png';
-import { FacebookIcon, InstagramIcon, YoutubeIcon, XIcon, TiktokIcon, WhatsappIcon } from './socialIcons.jsx';
 
 /* ============================================================
    CONSTANTS
@@ -55,6 +54,14 @@ function extractYouTubeId(url) {
   const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
   return m ? m[1] : null;
 }
+function mediaThumbUrl(mediaType, mediaUrl) {
+  if (mediaType === 'image') return mediaUrl || '';
+  if (mediaType === 'youtube') {
+    const id = extractYouTubeId(mediaUrl);
+    return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
+  }
+  return ''; // video-file/link posts have no easy auto-thumbnail — falls back to the icon placeholder
+}
 function stripHtml(text = '') { return text.replace(/\s+/g, ' ').trim(); }
 
 /* ============================================================
@@ -67,7 +74,7 @@ function defaultDonate() {
   return { intro: '', methods: [] };
 }
 function defaultSettings() {
-  return { stationName: 'NYCE TV', tagline: '', liveStreamUrl: DEFAULT_STREAM_URL };
+  return { stationName: 'NYCE 90.7 FM', tagline: '', liveStreamUrl: DEFAULT_STREAM_URL };
 }
 
 /* ============================================================
@@ -93,13 +100,26 @@ function CategoryTag({ name, isLive }) {
     </span>
   );
 }
-function AdSlot({ label = 'Advertisement', variant = 'banner' }) {
+function AdSlot({ label = 'Advertisement', variant = 'banner', ads = [] }) {
   const sizeClass = variant === 'banner' ? 'h-24 md:h-28' : 'h-40';
+  const active = ads.filter((a) => a.active && a.imageUrl);
+  // Picks one ad per slot render — simple rotation across however many are active, rather
+  // than needing separate "which slot" targeting for a site this size.
+  const ad = useMemo(() => (active.length ? active[Math.floor(Math.random() * active.length)] : null), [active.length]);
+
+  if (ad) {
+    return (
+      <a href={ad.linkUrl || '#'} target="_blank" rel="noopener noreferrer sponsored" className={`w-full ${sizeClass} rounded-xl overflow-hidden block relative group`}>
+        <img src={ad.imageUrl} alt={ad.advertiser} className="w-full h-full object-cover" />
+        <span className="absolute top-1.5 left-1.5 bg-blue-950 text-white text-xs font-semibold px-1.5 py-0.5 rounded opacity-80">Ad</span>
+      </a>
+    );
+  }
   return (
     <div className={`w-full ${sizeClass} rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center text-slate-400 gap-1`}>
       <Megaphone size={20} />
       <span className="text-xs font-semibold tracking-widest uppercase">{label}</span>
-      <span className="text-xs text-slate-300">Your ad network connects here</span>
+      <span className="text-xs text-slate-300">Add sponsors from Admin → Ads</span>
     </div>
   );
 }
@@ -197,7 +217,24 @@ function MediaEmbed({ type, url, dataUrl, title = '' }) {
   }
   return <MediaPlaceholder />;
 }
-const SOCIAL_ICON_MAP = { facebook: FacebookIcon, twitter: XIcon, instagram: InstagramIcon, youtube: YoutubeIcon, tiktok: TiktokIcon, whatsapp: WhatsappIcon };
+function brandIcon(pathChildren) {
+  // Small self-contained brand marks (not a facsimile of any single official logo file) —
+  // current lucide-react no longer ships these, so we draw simple, recognizable glyphs instead.
+  return function BrandIcon({ size = 20, className = '', ...props }) {
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} {...props}>
+        {pathChildren}
+      </svg>
+    );
+  };
+}
+const FacebookMark = brandIcon(<path d="M14 13.5h2.5l.5-3H14V8.5c0-.87.24-1.5 1.5-1.5H17V4.14C16.65 4.1 15.7 4 14.5 4 12 4 10.3 5.49 10.3 8.2v2.3H8v3h2.3V21h3v-7.5Z" />);
+const InstagramMark = brandIcon(<><rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" strokeWidth="1.8" /><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" strokeWidth="1.8" /><circle cx="17.2" cy="6.8" r="1.1" /></>);
+const YoutubeMark = brandIcon(<><rect x="2.5" y="6" width="19" height="12" rx="3.5" fill="none" stroke="currentColor" strokeWidth="1.8" /><path d="M10.5 9.5v5l4.5-2.5-4.5-2.5Z" /></>);
+const XMark = brandIcon(<path d="M5 4h3.2l3.9 5.3L16.3 4H19l-6 7.6L19.5 20h-3.2l-4.3-5.8L7 20H4.3l6.4-8.2L5 4Z" />);
+const LinkedinMark = brandIcon(<path d="M6.9 8.5H3.8V20h3.1V8.5ZM5.4 3.5a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6ZM20.2 20h-3.1v-6c0-1.4 0-3.3-2-3.3s-2.3 1.6-2.3 3.2V20h-3.1V8.5h3v1.6h.1c.4-.8 1.5-1.7 3.1-1.7 3.3 0 3.9 2.2 3.9 5V20Z" />);
+
+const SOCIAL_ICON_MAP = { facebook: FacebookMark, twitter: XMark, instagram: InstagramMark, youtube: YoutubeMark, tiktok: Music2, whatsapp: MessageCircle, linkedin: LinkedinMark };
 function SocialIcon({ platform, ...props }) { const Icon = SOCIAL_ICON_MAP[platform] || Globe; return <Icon {...props} />; }
 function Clamp2({ children, className = '' }) {
   return <p className={className} style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{children}</p>;
@@ -617,7 +654,7 @@ function ArticleCard({ article, category, onOpen, index = 0, layout = 'grid' }) 
     </button>
   );
 }
-function HomePage({ articles, categories, onOpenArticle }) {
+function HomePage({ articles, categories, ads, onOpenArticle }) {
   const catMap = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories]);
   const sorted = [...articles].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const featured = sorted.find(a => a.featured) || sorted[0];
@@ -626,33 +663,33 @@ function HomePage({ articles, categories, onOpenArticle }) {
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8">
       <ArticleCard article={featured} category={catMap[featured.categoryId]} onOpen={onOpenArticle} layout="hero" index={0} />
-      <div className="my-8"><AdSlot /></div>
+      <div className="my-8"><AdSlot ads={ads} /></div>
       <Eyebrow className="mb-4 block">Latest Stories</Eyebrow>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-8">
         {rest.map((a, i) => (
           <React.Fragment key={a.id}>
             <ArticleCard article={a} category={catMap[a.categoryId]} onOpen={onOpenArticle} index={i + 1} />
-            {(i + 1) % 5 === 0 && <div className="sm:col-span-2 lg:col-span-3"><AdSlot /></div>}
+            {(i + 1) % 5 === 0 && <div className="sm:col-span-2 lg:col-span-3"><AdSlot ads={ads} /></div>}
           </React.Fragment>
         ))}
       </div>
     </div>
   );
 }
-function CategoryPage({ category, articles, categories, onOpenArticle }) {
+function CategoryPage({ category, articles, categories, ads, onOpenArticle }) {
   const catMap = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories]);
   const filtered = articles.filter(a => a.categoryId === category.id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
       <div className="mb-6"><CategoryTag name={category.name} isLive={category.isLive} /><h1 className="text-3xl font-bold text-blue-950 mt-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{category.name}</h1></div>
-      <div className="mb-6"><AdSlot /></div>
+      <div className="mb-6"><AdSlot ads={ads} /></div>
       {filtered.length === 0 ? <EmptyState icon={Newspaper} title="No stories in this category yet" /> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-8">{filtered.map((a, i) => <ArticleCard key={a.id} article={a} category={catMap[a.categoryId]} onOpen={onOpenArticle} index={i} />)}</div>
       )}
     </div>
   );
 }
-function ArticlePage({ article, category, onBack, isAdmin, onEditGo, onDelete }) {
+function ArticlePage({ article, category, ads, onBack, isAdmin, onEditGo, onDelete }) {
   if (!article) return <div className="max-w-3xl mx-auto px-4 py-16"><EmptyState icon={Newspaper} title="Story not found" message="It may have been removed." /></div>;
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-6 py-8">
@@ -675,12 +712,12 @@ function ArticlePage({ article, category, onBack, isAdmin, onEditGo, onDelete })
          article.imageUrl ? <MediaEmbed type="image" dataUrl={article.imageUrl} title={article.title} /> : null}
       </div>
       <div className="text-slate-700 leading-relaxed whitespace-pre-line text-base">{article.body}</div>
-      <div className="my-8"><AdSlot /></div>
+      <div className="my-8"><AdSlot ads={ads} /></div>
       <div className="border-t border-slate-100 pt-8 mt-8"><CommentsSection targetType="article" targetId={article.id} isAdmin={isAdmin} /></div>
     </div>
   );
 }
-function LivePage({ livePosts, onOpen }) {
+function LivePage({ livePosts, ads, onOpen }) {
   const sorted = [...livePosts].sort((a, b) => {
     if (a.status === 'live' && b.status !== 'live') return -1;
     if (b.status === 'live' && a.status !== 'live') return 1;
@@ -689,13 +726,13 @@ function LivePage({ livePosts, onOpen }) {
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
       <div className="flex items-center gap-2 mb-6"><span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" /><h1 className="text-3xl font-bold text-blue-950" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Live</h1></div>
-      <div className="mb-6"><AdSlot /></div>
+      <div className="mb-6"><AdSlot ads={ads} /></div>
       {sorted.length === 0 ? <EmptyState icon={Video} title="Nothing live right now" message="Check back soon, or catch our replays here once they're posted." /> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {sorted.map((p, i) => (
             <button key={p.id} onClick={() => onOpen(p)} className="text-left rounded-xl overflow-hidden bg-slate-50 hover:shadow-lg transition-shadow group">
               <div className="relative">
-                <CardThumb imageUrl={p.mediaType === 'image' ? p.mediaUrl : ''} gradientIndex={i} icon={Video} className="w-full aspect-video" />
+                <CardThumb imageUrl={mediaThumbUrl(p.mediaType, p.mediaUrl)} gradientIndex={i} icon={Video} className="w-full aspect-video" />
                 {p.status === 'live' && <span className="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> LIVE NOW</span>}
               </div>
               <div className="p-4">
@@ -1160,6 +1197,7 @@ const ADMIN_TABS = [
   { key: 'comments', label: 'Comments', icon: MessageSquare },
   { key: 'team', label: 'Our Team', icon: Users },
   { key: 'research', label: 'Research Links', icon: Link2 },
+  { key: 'ads', label: 'Ads', icon: Megaphone },
   { key: 'contact', label: 'Contact & Socials', icon: Phone },
   { key: 'donate', label: 'Donate', icon: Heart },
   { key: 'settings', label: 'Settings', icon: Settings },
@@ -1184,6 +1222,9 @@ function AdminDashboard({ data, actions, onLogout }) {
         {tab === 'comments' && <AdminComments articles={data.articles} liveposts={data.live} />}
         {tab === 'team' && <AdminEntityEditor items={data.team} itemLabel="team member" fields={[{ key: 'photoUrl', label: 'Photo', type: 'image' }, { key: 'name', label: 'Name', required: true, primary: true }, { key: 'role', label: 'Role' }, { key: 'bio', label: 'Bio', type: 'textarea', full: true }]} renderExtra={(m) => m.role} onSave={actions.saveTeam} onDelete={actions.deleteTeam} />}
         {tab === 'research' && <AdminEntityEditor items={data.research} itemLabel="link" fields={[{ key: 'label', label: 'Label', required: true, primary: true }, { key: 'url', label: 'URL', required: true }, { key: 'description', label: 'Description', type: 'textarea', full: true }]} renderExtra={(l) => l.url} onSave={actions.saveResearch} onDelete={actions.deleteResearch} />}
+        {tab === 'ads' && <AdminEntityEditor items={data.ads} itemLabel="ad"
+          fields={[{ key: 'imageUrl', label: 'Banner image', type: 'image' }, { key: 'advertiser', label: 'Advertiser name', required: true, primary: true }, { key: 'linkUrl', label: 'Link URL', full: true }, { key: 'active', label: '', type: 'checkbox', checkboxLabel: 'Show this ad on the site' }]}
+          renderExtra={(a) => a.active ? 'Live on site' : 'Hidden'} onSave={actions.saveAd} onDelete={actions.deleteAd} />}
         {tab === 'contact' && <AdminContact contact={data.contact} onSave={actions.saveContact} />}
         {tab === 'donate' && <AdminDonate donate={data.donate} onSaveIntro={actions.saveDonate} onSaveMethod={actions.saveDonateMethod} onDeleteMethod={actions.deleteDonateMethod} />}
         {tab === 'settings' && <AdminSettings settings={data.settings} onSave={actions.saveSettings} />}
@@ -1203,6 +1244,7 @@ export default function App() {
   const [live, setLive] = useState([]);
   const [team, setTeam] = useState([]);
   const [research, setResearch] = useState([]);
+  const [ads, setAds] = useState([]);
   const [contact, setContact] = useState(defaultContact());
   const [donate, setDonate] = useState(defaultDonate());
   const [settings, setSettings] = useState(defaultSettings());
@@ -1223,13 +1265,13 @@ export default function App() {
     let active = true;
     (async () => {
       try {
-        const [cats, arts, liveItems, teamItems, res, cont, don, sett] = await Promise.all([
+        const [cats, arts, liveItems, teamItems, res, adsData, cont, don, sett] = await Promise.all([
           api.categories.list(), api.articles.list(), api.live.list(), api.team.list(),
-          api.research.list(), api.contact.get(), api.donate.get(), api.settings.get(),
+          api.research.list(), api.ads.list(), api.contact.get(), api.donate.get(), api.settings.get(),
         ]);
         if (!active) return;
         setCategories(cats); setArticles(arts); setLive(liveItems); setTeam(teamItems);
-        setResearch(res); setContact(cont); setDonate(don); setSettings(sett);
+        setResearch(res); setAds(adsData); setContact(cont); setDonate(don); setSettings(sett);
       } catch (err) {
         if (active) setLoadError(err.message || 'Could not reach the server.');
       } finally {
@@ -1293,6 +1335,16 @@ export default function App() {
       await api.research.remove(id);
       setResearch((prev) => prev.filter(r => r.id !== id));
       showToast('Link removed');
+    },
+    saveAd: async (item, isNew) => {
+      const saved = isNew ? await api.ads.create(item) : await api.ads.update(item.id, item);
+      setAds((prev) => isNew ? [...prev, saved] : prev.map(a => a.id === saved.id ? saved : a));
+      showToast('Ad saved');
+    },
+    deleteAd: async (id) => {
+      await api.ads.remove(id);
+      setAds((prev) => prev.filter(a => a.id !== id));
+      showToast('Ad removed');
     },
     saveContact: async (next) => { const saved = await api.contact.update(next); setContact(saved); showToast('Contact info saved'); },
     saveDonate: async (next) => {
@@ -1360,14 +1412,14 @@ export default function App() {
       {view.page !== 'admin' && <CategoryBar categories={categories} activeId={view.page === 'category' ? view.id : null} onSelect={(id) => id ? navigate('category', { id }) : navigate('home')} />}
 
       <main className="pb-16">
-        {view.page === 'home' && <HomePage articles={articles} categories={categories} onOpenArticle={(a) => navigate('article', { id: a.id })} />}
+        {view.page === 'home' && <HomePage articles={articles} categories={categories} ads={ads} onOpenArticle={(a) => navigate('article', { id: a.id })} />}
         {view.page === 'category' && activeCategory && (
           activeCategory.isLive
-            ? <LivePage livePosts={live} onOpen={(p) => setLiveModalPost(p)} />
-            : <CategoryPage category={activeCategory} articles={articles} categories={categories} onOpenArticle={(a) => navigate('article', { id: a.id })} />
+            ? <LivePage livePosts={live} ads={ads} onOpen={(p) => setLiveModalPost(p)} />
+            : <CategoryPage category={activeCategory} articles={articles} categories={categories} ads={ads} onOpenArticle={(a) => navigate('article', { id: a.id })} />
         )}
         {view.page === 'article' && (
-          <ArticlePage article={activeArticle} category={activeArticle ? catMap[activeArticle.categoryId] : null} onBack={() => navigate('home')}
+          <ArticlePage article={activeArticle} category={activeArticle ? catMap[activeArticle.categoryId] : null} ads={ads} onBack={() => navigate('home')}
             isAdmin={isAdmin} onEditGo={() => navigate('admin')} onDelete={(a) => actions.deleteArticle(a.id)} />
         )}
         {view.page === 'research' && <ResearchPage links={research} />}
@@ -1376,7 +1428,7 @@ export default function App() {
         {view.page === 'donate' && <DonatePage donate={donate} />}
         {view.page === 'admin' && (
           isAdmin
-            ? <AdminDashboard data={{ categories, articles, live, team, research, contact, donate, settings }} actions={actions} onLogout={() => { setToken(null); setIsAdmin(false); navigate('home'); }} />
+            ? <AdminDashboard data={{ categories, articles, live, team, research, ads, contact, donate, settings }} actions={actions} onLogout={() => { setToken(null); setIsAdmin(false); navigate('home'); }} />
             : <AdminLogin onLogin={() => setIsAdmin(true)} />
         )}
       </main>
