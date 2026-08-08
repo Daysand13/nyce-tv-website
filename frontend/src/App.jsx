@@ -784,7 +784,7 @@ function ResearchPage({ links }) {
       {links.length === 0 ? <EmptyState icon={Link2} title="No links yet" /> : (
         <div className="grid gap-3">
           {links.map(l => (
-            <a key={l.id} href={l.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-slate-50 hover:bg-sky-50 rounded-xl p-4 border border-slate-100 group">
+            <a key={l.id} href={l.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-slate-50 hover:bg-sky-50 rounded-xl p-4 border border-slate-100 group min-w-0">
               <div className="w-10 h-10 rounded-full bg-blue-950 text-white flex items-center justify-center shrink-0"><Globe size={16} /></div>
               <div className="flex-1 min-w-0"><p className="font-semibold text-blue-950 group-hover:text-blue-700">{l.label}</p>{l.description && <p className="text-sm text-slate-500 truncate">{l.description}</p>}</div>
               <ExternalLink size={16} className="text-slate-300 shrink-0" />
@@ -978,7 +978,7 @@ function AdminEntityEditor({ items, fields, onSave, onDelete, itemLabel = 'item'
       )}
       <div className="grid gap-2">
         {items.map(item => (
-          <div key={item.id} className="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3">
+          <div key={item.id} className="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3 min-w-0">
             {fields[0].type === 'image' && <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0"><CardThumb imageUrl={item[fields[0].key]} className="w-full h-full" /></div>}
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-blue-950 text-sm truncate">{item[primaryKey]}</p>
@@ -1031,7 +1031,7 @@ function AdminArticles({ articles, categories, onSave, onDelete }) {
       )}
       <div className="grid gap-2">
         {sorted.map(a => (
-          <div key={a.id} className="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3">
+          <div key={a.id} className="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3 min-w-0">
             <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0"><CardThumb imageUrl={a.imageUrl} className="w-full h-full" /></div>
             <div className="min-w-0 flex-1"><p className="font-semibold text-blue-950 text-sm truncate">{a.title}{a.featured && <span className="ml-2 text-xs bg-sky-100 text-sky-700 px-1.5 py-0.5 rounded-full">Featured</span>}</p><p className="text-xs text-slate-400 truncate">{categories.find(c => c.id === a.categoryId)?.name || '—'} · {formatDate(a.createdAt)}</p></div>
             <IconButton onClick={() => startEdit(a)} className="bg-slate-50" aria-label="Edit"><Pencil size={14} /></IconButton>
@@ -1078,7 +1078,7 @@ function AdminLive({ liveposts, categories, onSave, onDelete }) {
       )}
       <div className="grid gap-2">
         {liveposts.map(p => (
-          <div key={p.id} className="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3">
+          <div key={p.id} className="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-3 min-w-0">
             <div className="min-w-0 flex-1"><p className="font-semibold text-blue-950 text-sm truncate">{p.title} {p.status === 'live' && <span className="ml-1 text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full">LIVE</span>}</p><p className="text-xs text-slate-400 truncate">{p.mediaType} · {formatDate(p.createdAt)}</p></div>
             <IconButton onClick={() => startEdit(p)} className="bg-slate-50" aria-label="Edit"><Pencil size={14} /></IconButton>
             <IconButton onClick={() => setConfirmDelete(p)} className="bg-red-50 text-red-600" aria-label="Delete"><Trash2 size={14} /></IconButton>
