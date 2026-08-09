@@ -1,9 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 body {
-  font-family: 'IBM Plex Sans', sans-serif;
+  font-family: 'Geist', sans-serif;
   margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+:root {
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* {
+  transition-timing-function: var(--ease-smooth);
 }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -20,9 +29,15 @@ body {
 }
 @keyframes nyceStrip { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-.nyce-toast-in { animation: nyceToast 0.25s ease-out; }
+.nyce-toast-in { animation: nyceToast 0.35s var(--ease-smooth); }
 @keyframes nyceToast { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
+.nyce-fade-in { animation: nyceFadeIn 0.25s var(--ease-smooth); }
+@keyframes nyceFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.nyce-pop-in { animation: nycePopIn 0.35s var(--ease-smooth); }
+@keyframes nycePopIn { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
 @media (prefers-reduced-motion: reduce) {
-  .nyce-pulse-anim, .nyce-pulse-strip, .animate-pulse, .animate-ping { animation: none !important; }
+  .nyce-pulse-anim, .nyce-pulse-strip, .animate-pulse, .animate-ping, .nyce-fade-in, .nyce-pop-in { animation: none !important; }
 }

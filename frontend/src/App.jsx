@@ -91,7 +91,7 @@ function PulseLine({ className = '', active = true }) {
   );
 }
 function Eyebrow({ children, className = '' }) {
-  return <span className={`inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-sky-600 ${className}`} style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{children}</span>;
+  return <span className={`inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-sky-600 ${className}`} style={{ fontFamily: "'Geist', sans-serif" }}>{children}</span>;
 }
 function CategoryTag({ name, isLive }) {
   return (
@@ -137,7 +137,7 @@ function AdSlot({ label = 'Advertisement', ads = [] }) {
   );
 }
 function Button({ children, variant = 'primary', size = 'md', className = '', ...props }) {
-  const base = 'inline-flex items-center justify-center gap-2 font-semibold rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+  const base = 'inline-flex items-center justify-center gap-2 font-semibold rounded-full transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100';
   const sizes = { sm: 'px-3 py-1.5 text-xs', md: 'px-5 py-2.5 text-sm', lg: 'px-7 py-3.5 text-base' };
   const variants = {
     primary: 'bg-blue-700 text-white hover:bg-blue-800',
@@ -155,10 +155,10 @@ function Modal({ open, onClose, title, children, wide = false }) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
-      <div className="absolute inset-0 bg-blue-950 opacity-60" onClick={onClose} />
-      <div className={`relative bg-white w-full ${wide ? 'md:max-w-3xl' : 'md:max-w-lg'} md:rounded-2xl rounded-t-2xl max-h-screen overflow-y-auto shadow-2xl`}>
+      <div className="absolute inset-0 bg-blue-950 opacity-60 nyce-fade-in" onClick={onClose} />
+      <div className={`relative bg-white w-full ${wide ? 'md:max-w-3xl' : 'md:max-w-lg'} md:rounded-2xl rounded-t-2xl max-h-screen overflow-y-auto shadow-2xl nyce-pop-in`}>
         <div className="sticky top-0 bg-white flex items-center justify-between px-5 py-4 border-b border-slate-100">
-          <h3 className="font-bold text-blue-950" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
+          <h3 className="font-bold text-blue-950" style={{ fontFamily: "'Geist', sans-serif" }}>{title}</h3>
           <IconButton onClick={onClose} aria-label="Close"><X size={18} /></IconButton>
         </div>
         <div className="p-5">{children}</div>
@@ -444,7 +444,7 @@ function CommentsSection({ targetType, targetId, isAdmin }) {
     <div>
       <div className="flex items-center gap-2 mb-4">
         <MessageSquare size={18} className="text-blue-700" />
-        <h3 className="font-bold text-blue-950" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{comments.length} Comment{comments.length !== 1 ? 's' : ''}</h3>
+        <h3 className="font-bold text-blue-950" style={{ fontFamily: "'Geist', sans-serif" }}>{comments.length} Comment{comments.length !== 1 ? 's' : ''}</h3>
       </div>
       <CommentComposer onSubmit={(payload) => addComment(null, payload)} />
       {loading ? (
@@ -493,7 +493,7 @@ function AccessibilityWidget({ getReadableText }) {
   return (
     <div className="fixed bottom-5 right-5 z-40 flex flex-col items-end gap-2">
       {open && (
-        <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 p-4 w-64 mb-1">
+        <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 p-4 w-64 mb-1 nyce-pop-in">
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Accessibility</p>
           <p className="text-sm text-slate-600 mb-3">Have this page read aloud.</p>
           {!tts.supported && <p className="text-xs text-amber-600 mb-3">Speech isn't supported in this browser.</p>}
@@ -533,12 +533,12 @@ function ListenLiveWidget({ settings }) {
     <div className="fixed bottom-5 left-5 z-40">
       <audio ref={audioRef} src={settings.liveStreamUrl} preload="none" onPlaying={() => setPlaying(true)} onPause={() => setPlaying(false)} />
       {open && (
-        <div className="bg-blue-950 text-white rounded-2xl shadow-2xl p-4 w-64 mb-2">
+        <div className="bg-blue-950 text-white rounded-2xl shadow-2xl p-4 w-64 mb-2 nyce-pop-in">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold tracking-widest uppercase text-sky-400 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" /> On Air</span>
             <IconButton onClick={() => setOpen(false)} className="text-white hover:bg-white/10 w-7 h-7" aria-label="Close"><X size={14} /></IconButton>
           </div>
-          <p className="font-bold text-sm mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{settings.stationName} Live FM</p>
+          <p className="font-bold text-sm mb-1" style={{ fontFamily: "'Geist', sans-serif" }}>{settings.stationName} Live FM</p>
           <div className="h-8 my-2 text-sky-400"><PulseLine className="w-full h-full" active={playing} /></div>
           <button onClick={toggle} className="w-full bg-sky-500 hover:bg-sky-400 text-blue-950 font-bold rounded-full py-2 text-sm flex items-center justify-center gap-2">
             {loadingAudio ? <Loader2 size={16} className="animate-spin" /> : playing ? <Pause size={16} /> : <Play size={16} />}
@@ -600,7 +600,7 @@ function MobileMenu({ open, onClose, onNav, settings }) {
         </div>
         <nav className="flex-1 overflow-y-auto py-4">
           {NAV_MENU.map(item => (
-            <button key={item.key} onClick={() => { onNav(item.key); onClose(); }} className="w-full text-left px-6 py-3.5 text-blue-950 font-semibold hover:bg-sky-50 flex items-center justify-between group" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <button key={item.key} onClick={() => { onNav(item.key); onClose(); }} className="w-full text-left px-6 py-3.5 text-blue-950 font-semibold hover:bg-sky-50 flex items-center justify-between group" style={{ fontFamily: "'Geist', sans-serif" }}>
               {item.label}<ChevronRight size={16} className="text-slate-300 group-hover:text-sky-500" />
             </button>
           ))}
@@ -644,11 +644,11 @@ function ArticleCard({ article, category, onOpen, index = 0, layout = 'grid' }) 
     return (
       <button onClick={() => onOpen(article)} className="text-left w-full group">
         <div className="relative rounded-2xl overflow-hidden h-64 md:h-auto md:aspect-video">
-          <CardThumb imageUrl={article.imageUrl} gradientIndex={index} className="w-full h-full" />
+          <CardThumb imageUrl={article.imageUrl} gradientIndex={index} className="w-full h-full transition-transform duration-700 group-hover:scale-105" />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(23,37,84,0.92) 0%, rgba(23,37,84,0.25) 55%, transparent 100%)' }} />
           <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
             {category && <CategoryTag name={category.name} isLive={category.isLive} />}
-            <h2 className="text-white text-2xl md:text-4xl font-bold mt-3 leading-tight group-hover:text-sky-300 transition-colors" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{article.title}</h2>
+            <h2 className="text-white text-2xl md:text-4xl font-bold mt-3 leading-tight group-hover:text-sky-300 transition-colors" style={{ fontFamily: "'Geist', sans-serif" }}>{article.title}</h2>
             <p className="text-blue-100 text-sm mt-2 hidden md:block max-w-2xl">{article.excerpt}</p>
             <p className="text-blue-300 text-xs mt-3">{article.author} · {timeAgo(article.createdAt)}</p>
           </div>
@@ -658,9 +658,9 @@ function ArticleCard({ article, category, onOpen, index = 0, layout = 'grid' }) 
   }
   return (
     <button onClick={() => onOpen(article)} className="text-left group flex flex-col">
-      <div className="rounded-xl overflow-hidden mb-3"><CardThumb imageUrl={article.imageUrl} gradientIndex={index} className="w-full aspect-video" /></div>
+      <div className="rounded-xl overflow-hidden mb-3"><CardThumb imageUrl={article.imageUrl} gradientIndex={index} className="w-full aspect-video transition-transform duration-500 group-hover:scale-110" /></div>
       {category && <CategoryTag name={category.name} isLive={category.isLive} />}
-      <h3 className="font-bold text-blue-950 mt-2 leading-snug group-hover:text-blue-700 transition-colors" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{article.title}</h3>
+      <h3 className="font-bold text-blue-950 mt-2 leading-snug group-hover:text-blue-700 transition-colors" style={{ fontFamily: "'Geist', sans-serif" }}>{article.title}</h3>
       <Clamp2 className="text-sm text-slate-500 mt-1">{article.excerpt}</Clamp2>
       <p className="text-xs text-slate-400 mt-2">{article.author} · {timeAgo(article.createdAt)}</p>
     </button>
@@ -693,7 +693,7 @@ function CategoryPage({ category, articles, categories, ads, onOpenArticle }) {
   const filtered = articles.filter(a => a.categoryId === category.id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
-      <div className="mb-6"><CategoryTag name={category.name} isLive={category.isLive} /><h1 className="text-3xl font-bold text-blue-950 mt-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{category.name}</h1></div>
+      <div className="mb-6"><CategoryTag name={category.name} isLive={category.isLive} /><h1 className="text-3xl font-bold text-blue-950 mt-2" style={{ fontFamily: "'Geist', sans-serif" }}>{category.name}</h1></div>
       <div className="mb-6"><AdSlot ads={ads} /></div>
       {filtered.length === 0 ? <EmptyState icon={Newspaper} title="No stories in this category yet" /> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-8">{filtered.map((a, i) => <ArticleCard key={a.id} article={a} category={catMap[a.categoryId]} onOpen={onOpenArticle} index={i} />)}</div>
@@ -707,7 +707,7 @@ function ArticlePage({ article, category, ads, onBack, isAdmin, onEditGo, onDele
     <div className="max-w-3xl mx-auto px-4 md:px-6 py-8">
       <button onClick={onBack} className="flex items-center gap-1.5 text-sm font-semibold text-slate-400 hover:text-blue-700 mb-5"><ArrowLeft size={15} /> Back</button>
       {category && <CategoryTag name={category.name} isLive={category.isLive} />}
-      <h1 className="text-2xl md:text-4xl font-bold text-blue-950 mt-3 leading-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{article.title}</h1>
+      <h1 className="text-2xl md:text-4xl font-bold text-blue-950 mt-3 leading-tight" style={{ fontFamily: "'Geist', sans-serif" }}>{article.title}</h1>
       <div className="flex items-center gap-3 mt-4 text-sm text-slate-400 flex-wrap">
         <span className="flex items-center gap-1.5"><User size={13} />{article.author}</span>
         <span className="flex items-center gap-1.5"><Clock size={13} />{formatDate(article.createdAt)}</span>
@@ -737,7 +737,7 @@ function LivePage({ livePosts, ads, onOpen }) {
   });
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
-      <div className="flex items-center gap-2 mb-6"><span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" /><h1 className="text-3xl font-bold text-blue-950" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Live</h1></div>
+      <div className="flex items-center gap-2 mb-6"><span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" /><h1 className="text-3xl font-bold text-blue-950" style={{ fontFamily: "'Geist', sans-serif" }}>Live</h1></div>
       <div className="mb-6"><AdSlot ads={ads} /></div>
       {sorted.length === 0 ? <EmptyState icon={Video} title="Nothing live right now" message="Check back soon, or catch our replays here once they're posted." /> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -748,7 +748,7 @@ function LivePage({ livePosts, ads, onOpen }) {
                 {p.status === 'live' && <span className="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> LIVE NOW</span>}
               </div>
               <div className="p-4">
-                <h3 className="font-bold text-blue-950 group-hover:text-blue-700" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{p.title}</h3>
+                <h3 className="font-bold text-blue-950 group-hover:text-blue-700" style={{ fontFamily: "'Geist', sans-serif" }}>{p.title}</h3>
                 <Clamp2 className="text-sm text-slate-500 mt-1">{p.description}</Clamp2>
               </div>
             </button>
@@ -779,7 +779,7 @@ function ResearchPage({ links }) {
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-6 py-8">
       <Eyebrow>Resources</Eyebrow>
-      <h1 className="text-3xl font-bold text-blue-950 mt-2 mb-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Research</h1>
+      <h1 className="text-3xl font-bold text-blue-950 mt-2 mb-6" style={{ fontFamily: "'Geist', sans-serif" }}>Research</h1>
       <p className="text-slate-500 mb-6">Take part in our surveys and questionnaires — tap any link below to get started.</p>
       {links.length === 0 ? <EmptyState icon={Link2} title="No links yet" /> : (
         <div className="grid gap-3">
@@ -802,13 +802,13 @@ function TeamPage({ team }) {
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-6 py-8">
       <Eyebrow>The People Behind The Mic</Eyebrow>
-      <h1 className="text-3xl font-bold text-blue-950 mt-2 mb-8" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Our Team</h1>
+      <h1 className="text-3xl font-bold text-blue-950 mt-2 mb-8" style={{ fontFamily: "'Geist', sans-serif" }}>Our Team</h1>
       {team.length === 0 ? <EmptyState icon={Users} title="No team members added yet" /> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {team.map((m, i) => (
             <div key={m.id} className="text-center bg-slate-50 rounded-2xl p-6">
               <div className="w-24 h-24 rounded-full mx-auto overflow-hidden mb-4"><CardThumb imageUrl={m.photoUrl} gradientIndex={i} icon={User} className="w-full h-full" /></div>
-              <p className="font-bold text-blue-950" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{m.name}</p>
+              <p className="font-bold text-blue-950" style={{ fontFamily: "'Geist', sans-serif" }}>{m.name}</p>
               <p className="text-sky-600 text-sm font-semibold mb-2">{m.role}</p>
               <p className="text-sm text-slate-500">{m.bio}</p>
             </div>
@@ -824,7 +824,7 @@ function ContactPage({ contact }) {
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-6 py-8">
       <Eyebrow>Get In Touch</Eyebrow>
-      <h1 className="text-3xl font-bold text-blue-950 mt-2 mb-8" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Contact Us</h1>
+      <h1 className="text-3xl font-bold text-blue-950 mt-2 mb-8" style={{ fontFamily: "'Geist', sans-serif" }}>Contact Us</h1>
       <div className="grid md:grid-cols-2 gap-8">
         <div className="space-y-4">
           <div className="flex items-start gap-3"><MapPin size={18} className="text-sky-600 mt-0.5" /><p className="text-slate-600">{contact.address}</p></div>
@@ -847,7 +847,7 @@ function DonatePage({ donate }) {
   return (
     <div className="max-w-2xl mx-auto px-4 md:px-6 py-8">
       <Eyebrow>Support The Station</Eyebrow>
-      <h1 className="text-3xl font-bold text-blue-950 mt-2 mb-4 flex items-center gap-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}><Heart className="text-red-500" fill="currentColor" /> Donate</h1>
+      <h1 className="text-3xl font-bold text-blue-950 mt-2 mb-4 flex items-center gap-2" style={{ fontFamily: "'Geist', sans-serif" }}><Heart className="text-red-500" fill="currentColor" /> Donate</h1>
       <p className="text-slate-500 mb-6">{donate.intro}</p>
       <div className="grid gap-3">{(donate.methods || []).map(m => <div key={m.id} className="bg-slate-50 rounded-xl p-4 border border-slate-100"><p className="font-bold text-blue-950">{m.label}</p><p className="text-sm text-slate-500 mt-0.5">{m.detail}</p></div>)}</div>
     </div>
@@ -880,7 +880,7 @@ function AdminLogin({ onLogin }) {
     <div className="max-w-sm mx-auto px-4 py-20">
       <div className="text-center mb-6">
         <div className="w-14 h-14 rounded-2xl bg-blue-950 text-white flex items-center justify-center mx-auto mb-4"><Lock size={22} /></div>
-        <h1 className="text-2xl font-bold text-blue-950" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Admin Access</h1>
+        <h1 className="text-2xl font-bold text-blue-950" style={{ fontFamily: "'Geist', sans-serif" }}>Admin Access</h1>
         <p className="text-sm text-slate-400 mt-1">Sign in to manage the site.</p>
       </div>
       <form onSubmit={submit} className="space-y-3">
@@ -1195,7 +1195,7 @@ function AdminOverview({ articles, liveposts, categories, team }) {
   return (
     <div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {stats.map(s => <div key={s.label} className="bg-white border border-slate-100 rounded-2xl p-5"><s.icon size={18} className="text-sky-600 mb-2" /><p className="text-2xl font-bold text-blue-950" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{s.value}</p><p className="text-xs text-slate-400">{s.label}</p></div>)}
+        {stats.map(s => <div key={s.label} className="bg-white border border-slate-100 rounded-2xl p-5"><s.icon size={18} className="text-sky-600 mb-2" /><p className="text-2xl font-bold text-blue-950" style={{ fontFamily: "'Geist', sans-serif" }}>{s.value}</p><p className="text-xs text-slate-400">{s.label}</p></div>)}
       </div>
       <div className="bg-sky-50 border border-sky-100 rounded-2xl p-5 text-sm text-blue-900">
         <p className="font-semibold mb-1">Welcome back.</p>
@@ -1229,7 +1229,7 @@ function AdminDashboard({ data, actions, onLogout }) {
         </div>
       </aside>
       <main className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-5"><ActiveIcon size={18} className="text-blue-950" /><h2 className="text-xl font-bold text-blue-950" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{ADMIN_TABS.find(t => t.key === tab)?.label}</h2></div>
+        <div className="flex items-center gap-2 mb-5"><ActiveIcon size={18} className="text-blue-950" /><h2 className="text-xl font-bold text-blue-950" style={{ fontFamily: "'Geist', sans-serif" }}>{ADMIN_TABS.find(t => t.key === tab)?.label}</h2></div>
         {tab === 'overview' && <AdminOverview articles={data.articles} liveposts={data.live} categories={data.categories} team={data.team} />}
         {tab === 'articles' && <AdminArticles articles={data.articles} categories={data.categories} onSave={actions.saveArticle} onDelete={actions.deleteArticle} />}
         {tab === 'categories' && <AdminEntityEditor items={data.categories} itemLabel="category" fields={[{ key: 'name', label: 'Name', required: true, primary: true }, { key: 'isLive', label: '', type: 'checkbox', checkboxLabel: 'Treat as a Live/events category' }]} renderExtra={(c) => c.isLive ? 'Live / events category' : ''} onSave={actions.saveCategory} onDelete={actions.deleteCategory} />}
@@ -1421,7 +1421,7 @@ export default function App() {
   const activeCategory = view.page === 'category' ? categories.find(c => c.id === view.id) : null;
 
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}>
+    <div className="min-h-screen bg-white" style={{ fontFamily: "'Geist', sans-serif" }}>
       <Header settings={settings} onMenuOpen={() => setMenuOpen(true)} onNav={navigate} />
       <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} onNav={navigate} settings={settings} />
       {view.page !== 'admin' && <CategoryBar categories={categories} activeId={view.page === 'category' ? view.id : null} onSelect={(id) => id ? navigate('category', { id }) : navigate('home')} />}
