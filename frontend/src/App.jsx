@@ -784,11 +784,14 @@ function ResearchPage({ links }) {
       {links.length === 0 ? <EmptyState icon={Link2} title="No links yet" /> : (
         <div className="grid gap-3">
           {links.map(l => (
-            <a key={l.id} href={l.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-slate-50 hover:bg-sky-50 rounded-xl p-4 border border-slate-100 group min-w-0">
+            <div key={l.id} className="flex items-start gap-3 bg-slate-50 hover:bg-sky-50 rounded-xl p-4 border border-slate-100 min-w-0 transition-colors">
               <div className="w-10 h-10 rounded-full bg-blue-950 text-white flex items-center justify-center shrink-0"><Globe size={16} /></div>
-              <div className="flex-1 min-w-0"><p className="font-semibold text-blue-950 group-hover:text-blue-700">{l.label}</p>{l.description && <p className="text-sm text-slate-500 truncate">{l.description}</p>}</div>
-              <ExternalLink size={16} className="text-slate-300 shrink-0" />
-            </a>
+              <div className="flex-1 min-w-0">
+                <a href={l.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-950 hover:text-blue-700">{l.label}</a>
+                {l.description && <p className="text-sm text-slate-500 mt-0.5">{l.description}</p>}
+              </div>
+              <a href={l.url} target="_blank" rel="noopener noreferrer" aria-label={`Open ${l.label}`} className="text-slate-300 hover:text-blue-700 shrink-0"><ExternalLink size={16} /></a>
+            </div>
           ))}
         </div>
       )}
