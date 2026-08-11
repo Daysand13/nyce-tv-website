@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Menu, X, Volume2, Play, Pause, Mic, Square, Trash2, Pencil, Plus,
-  ChevronRight, ExternalLink, Heart, Radio, Users, Link2, Lock, LogOut, Settings,
+  ChevronRight, ChevronLeft, ExternalLink, Heart, Radio, Users, Link2, Lock, LogOut, Settings,
   LayoutGrid, Megaphone, MessageSquare, Reply, Send, Loader2, Check, AlertTriangle,
   ArrowLeft, Upload, Clock, User, Eye, EyeOff, MessageCircle, Music2, Globe,
   Newspaper, Rss, Video, Mail, Phone, MapPin,
@@ -249,8 +249,8 @@ const LinkedinMark = brandIcon(<path d="M6.9 8.5H3.8V20h3.1V8.5ZM5.4 3.5a1.8 1.8
 
 const SOCIAL_ICON_MAP = { facebook: FacebookMark, twitter: XMark, instagram: InstagramMark, youtube: YoutubeMark, tiktok: Music2, whatsapp: MessageCircle, linkedin: LinkedinMark };
 function SocialIcon({ platform, ...props }) { const Icon = SOCIAL_ICON_MAP[platform] || Globe; return <Icon {...props} />; }
-function Clamp2({ children, className = '' }) {
-  return <p className={className} style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{children}</p>;
+function ClampText({ children, lines = 2, className = '' }) {
+  return <p className={className} style={{ display: '-webkit-box', WebkitLineClamp: lines, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{children}</p>;
 }
 
 /* ============================================================
@@ -570,17 +570,17 @@ function Header({ settings, onMenuOpen, onNav }) {
           <img src={LOGO_DATA_URL} alt={settings.stationName} className="h-9 md:h-11 w-auto object-contain" />
         </button>
         <span className="hidden md:inline text-xs font-semibold tracking-widest uppercase text-sky-600 ml-1">{settings.tagline}</span>
-        <button onClick={() => onNav('admin')} className="hidden md:flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-blue-700 px-2 ml-auto"><Lock size={12} /> Admin</button>
       </div>
     </header>
   );
 }
 function CategoryBar({ categories, activeId, onSelect }) {
+  const ordered = useMemo(() => [...categories].sort((a, b) => (a.isLive ? 1 : 0) - (b.isLive ? 1 : 0)), [categories]);
   return (
     <div className="bg-blue-950 sticky top-16 md:top-20 z-20">
       <div className="max-w-6xl mx-auto px-4 md:px-6 flex gap-1 overflow-x-auto no-scrollbar">
         <button onClick={() => onSelect(null)} className={`shrink-0 px-4 py-2.5 text-xs font-bold tracking-wide uppercase border-b-2 transition-colors ${!activeId ? 'text-white border-sky-400' : 'text-blue-300 border-transparent hover:text-white'}`}>All Stories</button>
-        {categories.map(c => (
+        {ordered.map(c => (
           <button key={c.id} onClick={() => onSelect(c.id)} className={`shrink-0 px-4 py-2.5 text-xs font-bold tracking-wide uppercase border-b-2 transition-colors flex items-center gap-1.5 ${activeId === c.id ? 'text-white border-sky-400' : 'text-blue-300 border-transparent hover:text-white'}`}>
             {c.isLive && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />}{c.name}
           </button>
@@ -605,7 +605,6 @@ function MobileMenu({ open, onClose, onNav, settings }) {
             </button>
           ))}
         </nav>
-        <button onClick={() => { onNav('admin'); onClose(); }} className="m-4 flex items-center justify-center gap-2 text-xs font-semibold text-slate-400 hover:text-blue-700 border border-slate-200 rounded-full py-2.5"><Lock size={12} /> Admin Access</button>
       </div>
     </div>
   );
@@ -661,7 +660,7 @@ function ArticleCard({ article, category, onOpen, index = 0, layout = 'grid' }) 
       <div className="rounded-xl overflow-hidden mb-3"><CardThumb imageUrl={article.imageUrl} gradientIndex={index} className="w-full aspect-video transition-transform duration-500 group-hover:scale-110" /></div>
       {category && <CategoryTag name={category.name} isLive={category.isLive} />}
       <h3 className="font-bold text-blue-950 mt-2 leading-snug group-hover:text-blue-700 transition-colors" style={{ fontFamily: "'Geist', sans-serif" }}>{article.title}</h3>
-      <Clamp2 className="text-sm text-slate-500 mt-1">{article.excerpt}</Clamp2>
+      <ClampText className="text-sm text-slate-500 mt-1">{article.excerpt}</ClampText>
       <p className="text-xs text-slate-400 mt-2">{article.author} · {timeAgo(article.createdAt)}</p>
     </button>
   );
@@ -701,31 +700,116 @@ function CategoryPage({ category, articles, categories, ads, onOpenArticle }) {
     </div>
   );
 }
-function ArticlePage({ article, category, ads, onBack, isAdmin, onEditGo, onDelete }) {
+function RelatedStoryItem({ article, category, onOpen }) {
+  return (
+    <button onClick={() => onOpen(article)} className="flex gap-3 text-left w-full group">
+      <div className="w-20 h-16 rounded-lg overflow-hidden shrink-0"><CardThumb imageUrl={article.imageUrl} className="w-full h-full transition-transform duration-500 group-hover:scale-110" /></div>
+      <div className="min-w-0">
+        {category && <span className="text-xs font-semibold text-sky-600 uppercase tracking-wide">{category.name}</span>}
+        <ClampText lines={3} className="text-sm font-semibold text-blue-950 group-hover:text-blue-700 leading-snug">{article.title}</ClampText>
+        <p className="text-xs text-slate-400 mt-1">{timeAgo(article.createdAt)}</p>
+      </div>
+    </button>
+  );
+}
+function MoreStories({ articles, categories, currentArticle, onOpen, onSeeMore, limit = 6 }) {
+  const catMap = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories]);
+  const others = useMemo(() => {
+    const byRecency = (a, b) => new Date(b.createdAt) - new Date(a.createdAt);
+    const rest = articles.filter(a => a.id !== currentArticle.id);
+    const sameCategory = rest.filter(a => a.categoryId === currentArticle.categoryId).sort(byRecency);
+    const everythingElse = rest.filter(a => a.categoryId !== currentArticle.categoryId).sort(byRecency);
+    return [...sameCategory, ...everythingElse];
+  }, [articles, currentArticle.id, currentArticle.categoryId]);
+  const shown = others.slice(0, limit);
+
+  if (shown.length === 0) return null;
+  return (
+    <div>
+      <Eyebrow className="mb-4 block">More Stories</Eyebrow>
+      <div className="flex flex-col gap-4 divide-y divide-slate-100">
+        {shown.map((a, i) => <div key={a.id} className={i > 0 ? 'pt-4' : ''}><RelatedStoryItem article={a} category={catMap[a.categoryId]} onOpen={onOpen} /></div>)}
+      </div>
+      {others.length > limit && (
+        <Button variant="outline" size="sm" onClick={onSeeMore} className="w-full justify-center mt-5">See More Stories</Button>
+      )}
+    </div>
+  );
+}
+function ArticlePage({ article, category, ads, articles, categories, onBack, onOpenArticle, onSeeMoreStories, isAdmin, onEditGo, onDelete }) {
   if (!article) return <div className="max-w-3xl mx-auto px-4 py-16"><EmptyState icon={Newspaper} title="Story not found" message="It may have been removed." /></div>;
   return (
-    <div className="max-w-3xl mx-auto px-4 md:px-6 py-8">
-      <button onClick={onBack} className="flex items-center gap-1.5 text-sm font-semibold text-slate-400 hover:text-blue-700 mb-5"><ArrowLeft size={15} /> Back</button>
-      {category && <CategoryTag name={category.name} isLive={category.isLive} />}
-      <h1 className="text-2xl md:text-4xl font-bold text-blue-950 mt-3 leading-tight" style={{ fontFamily: "'Geist', sans-serif" }}>{article.title}</h1>
-      <div className="flex items-center gap-3 mt-4 text-sm text-slate-400 flex-wrap">
-        <span className="flex items-center gap-1.5"><User size={13} />{article.author}</span>
-        <span className="flex items-center gap-1.5"><Clock size={13} />{formatDate(article.createdAt)}</span>
-        {isAdmin && (
-          <div className="ml-auto flex gap-2">
-            <IconButton onClick={onEditGo} className="bg-slate-100" aria-label="Edit"><Pencil size={14} /></IconButton>
-            <IconButton onClick={() => { if (window.confirm('Delete this article? This cannot be undone.')) onDelete(article); }} className="bg-red-50 text-red-600" aria-label="Delete"><Trash2 size={14} /></IconButton>
+    <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
+      <div className="max-w-3xl">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-sm font-semibold text-slate-400 hover:text-blue-700 mb-5"><ArrowLeft size={15} /> Back</button>
+        {category && <CategoryTag name={category.name} isLive={category.isLive} />}
+        <h1 className="text-2xl md:text-4xl font-bold text-blue-950 mt-3 leading-tight" style={{ fontFamily: "'Geist', sans-serif" }}>{article.title}</h1>
+        <div className="flex items-center gap-3 mt-4 text-sm text-slate-400 flex-wrap">
+          <span className="flex items-center gap-1.5"><User size={13} />{article.author}</span>
+          <span className="flex items-center gap-1.5"><Clock size={13} />{formatDate(article.createdAt)}</span>
+          {isAdmin && (
+            <div className="ml-auto flex gap-2">
+              <IconButton onClick={onEditGo} className="bg-slate-100" aria-label="Edit"><Pencil size={14} /></IconButton>
+              <IconButton onClick={() => { if (window.confirm('Delete this article? This cannot be undone.')) onDelete(article); }} className="bg-red-50 text-red-600" aria-label="Delete"><Trash2 size={14} /></IconButton>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="lg:grid lg:grid-cols-3 lg:gap-10 mt-6">
+        <div className="lg:col-span-2 max-w-3xl lg:max-w-none">
+          <div className="mb-6">
+            {article.youtubeUrl ? <MediaEmbed type="youtube" url={article.youtubeUrl} title={article.title} /> :
+             article.videoUrl ? <MediaEmbed type="video" url={article.videoUrl} title={article.title} /> :
+             article.imageUrl ? <MediaEmbed type="image" dataUrl={article.imageUrl} title={article.title} /> : null}
           </div>
-        )}
+          <div className="text-slate-700 leading-relaxed whitespace-pre-line text-base">{article.body}</div>
+          <div className="my-8"><AdSlot ads={ads} /></div>
+          <div className="border-t border-slate-100 pt-8 mt-8"><CommentsSection targetType="article" targetId={article.id} isAdmin={isAdmin} /></div>
+
+          {/* On mobile there's no room for a side rail, so More Stories drops in right after comments instead. */}
+          <div className="lg:hidden border-t border-slate-100 pt-8 mt-8">
+            <MoreStories articles={articles} categories={categories} currentArticle={article} onOpen={onOpenArticle} onSeeMore={onSeeMoreStories} />
+          </div>
+        </div>
+
+        <div className="hidden lg:block">
+          <div className="sticky top-32">
+            <MoreStories articles={articles} categories={categories} currentArticle={article} onOpen={onOpenArticle} onSeeMore={onSeeMoreStories} />
+          </div>
+        </div>
       </div>
-      <div className="my-6">
-        {article.youtubeUrl ? <MediaEmbed type="youtube" url={article.youtubeUrl} title={article.title} /> :
-         article.videoUrl ? <MediaEmbed type="video" url={article.videoUrl} title={article.title} /> :
-         article.imageUrl ? <MediaEmbed type="image" dataUrl={article.imageUrl} title={article.title} /> : null}
-      </div>
-      <div className="text-slate-700 leading-relaxed whitespace-pre-line text-base">{article.body}</div>
-      <div className="my-8"><AdSlot ads={ads} /></div>
-      <div className="border-t border-slate-100 pt-8 mt-8"><CommentsSection targetType="article" targetId={article.id} isAdmin={isAdmin} /></div>
+    </div>
+  );
+}
+function AllStoriesPage({ articles, categories, onOpenArticle }) {
+  const catMap = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories]);
+  const [page, setPage] = useState(1);
+  const perPage = 12;
+  const sorted = useMemo(() => [...articles].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)), [articles]);
+  const totalPages = Math.max(1, Math.ceil(sorted.length / perPage));
+  const pageItems = sorted.slice((page - 1) * perPage, page * perPage);
+
+  const goTo = (p) => { setPage(Math.min(Math.max(1, p), totalPages)); window.scrollTo(0, 0); };
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
+      <Eyebrow>Archive</Eyebrow>
+      <h1 className="text-3xl font-bold text-blue-950 mt-2 mb-8" style={{ fontFamily: "'Geist', sans-serif" }}>All Stories</h1>
+      {pageItems.length === 0 ? <EmptyState icon={Newspaper} title="No stories yet" /> : (
+        <>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-8">
+            {pageItems.map((a, i) => <ArticleCard key={a.id} article={a} category={catMap[a.categoryId]} onOpen={onOpenArticle} index={i} />)}
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-4 mt-12">
+              <Button variant="subtle" size="sm" onClick={() => goTo(page - 1)} disabled={page === 1}><ChevronLeft size={14} /> Previous</Button>
+              <span className="text-sm text-slate-500 font-medium">Page {page} of {totalPages}</span>
+              <Button variant="subtle" size="sm" onClick={() => goTo(page + 1)} disabled={page === totalPages}>Next <ChevronRight size={14} /></Button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -749,7 +833,7 @@ function LivePage({ livePosts, ads, onOpen }) {
               </div>
               <div className="p-4">
                 <h3 className="font-bold text-blue-950 group-hover:text-blue-700" style={{ fontFamily: "'Geist', sans-serif" }}>{p.title}</h3>
-                <Clamp2 className="text-sm text-slate-500 mt-1">{p.description}</Clamp2>
+                <ClampText className="text-sm text-slate-500 mt-1">{p.description}</ClampText>
               </div>
             </button>
           ))}
@@ -1264,14 +1348,27 @@ export default function App() {
   const [donate, setDonate] = useState(defaultDonate());
   const [settings, setSettings] = useState(defaultSettings());
 
-  const [view, setView] = useState({ page: 'home' });
+  const [view, setView] = useState(() =>
+    typeof window !== 'undefined' && window.location.pathname.replace(/\/$/, '') === '/admin'
+      ? { page: 'admin' }
+      : { page: 'home' }
+  );
   const [menuOpen, setMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [liveModalPost, setLiveModalPost] = useState(null);
   const [toast, setToast] = useState('');
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 2500); };
-  const navigate = (page, extra = {}) => { setView({ page, ...extra }); window.scrollTo(0, 0); };
+  const navigate = (page, extra = {}) => {
+    setView({ page, ...extra });
+    window.scrollTo(0, 0);
+    if (typeof window === 'undefined') return;
+    if (page === 'admin') {
+      if (window.location.pathname !== '/admin') window.history.pushState({}, '', '/admin');
+    } else if (window.location.pathname === '/admin') {
+      window.history.pushState({}, '', '/');
+    }
+  };
 
   // Load everything from the real API on mount, and pick up an existing admin session
   // (if a token is already stored from a previous visit) rather than forcing a re-login
@@ -1434,9 +1531,11 @@ export default function App() {
             : <CategoryPage category={activeCategory} articles={articles} categories={categories} ads={ads} onOpenArticle={(a) => navigate('article', { id: a.id })} />
         )}
         {view.page === 'article' && (
-          <ArticlePage article={activeArticle} category={activeArticle ? catMap[activeArticle.categoryId] : null} ads={ads} onBack={() => navigate('home')}
+          <ArticlePage article={activeArticle} category={activeArticle ? catMap[activeArticle.categoryId] : null} ads={ads} articles={articles} categories={categories}
+            onBack={() => navigate('home')} onOpenArticle={(a) => navigate('article', { id: a.id })} onSeeMoreStories={() => navigate('archive')}
             isAdmin={isAdmin} onEditGo={() => navigate('admin')} onDelete={(a) => actions.deleteArticle(a.id)} />
         )}
+        {view.page === 'archive' && <AllStoriesPage articles={articles} categories={categories} onOpenArticle={(a) => navigate('article', { id: a.id })} />}
         {view.page === 'research' && <ResearchPage links={research} />}
         {view.page === 'team' && <TeamPage team={team} />}
         {view.page === 'contact' && <ContactPage contact={contact} />}
